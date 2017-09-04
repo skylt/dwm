@@ -152,6 +152,7 @@ static void checkotherwm(void);
 static void cleanup(void);
 static void cleanupmon(Monitor *mon);
 static void clientmessage(XEvent *e);
+static void col(Monitor *);
 static void configure(Client *c);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
@@ -226,6 +227,7 @@ static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
+static void viewlr(const Arg *arg);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
 static int xerror(Display *dpy, XErrorEvent *ee);
@@ -1684,6 +1686,32 @@ tagmon(const Arg *arg)
 }
 
 void
+col(Monitor *m) {
+	unsigned int i, n, h, w, x, y,mw;
+	Client *c;
+
+	for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+	if(n == 0)
+		return;
+        if(n > m->nmaster)
+                mw = m->nmaster ? m->ww * m->mfact : 0;
+        else
+                mw = m->ww;
+	for(i = x = y = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+		if(i < m->nmaster) {
+			 w = (mw - x) / (MIN(n, m->nmaster)-i);
+                         resize(c, x + m->wx, m->wy, w - (2*c->bw), m->wh - (2*c->bw), False);
+			x += WIDTH(c);
+		}
+		else {
+			h = (m->wh - y) / (n - i);
+			resize(c, x + m->wx, m->wy + y, m->ww - x  - (2*c->bw), h - (2*c->bw), False);
+			y += HEIGHT(c);
+		}
+	}
+}
+
+void
 tile(Monitor *m)
 {
 	unsigned int i, n, h, mw, my, ty;
@@ -2060,6 +2088,23 @@ view(const Arg *arg)
 	focus(NULL);
 	arrange(selmon);
 }
+
+
+void
+viewlr(const Arg *arg)
+{
+	if ((selmon->tagset[selmon->seltags] & 0x01 && arg->i == -1 )
+		|| (selmon->tagset[selmon->seltags] & 0x100 && arg->i == 1))
+		return;
+	if (arg->i == 1)
+		selmon->tagset[selmon->seltags] <<= 1;
+	else
+		selmon->tagset[selmon->seltags] >>= 1;
+	focus(NULL);
+	arrange(selmon);
+}
+
+
 
 Client *
 wintoclient(Window w)
