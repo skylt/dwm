@@ -2105,7 +2105,7 @@ void
 viewlr(const Arg *arg)
 {
 	if ((selmon->tagset[selmon->seltags] & 0x01 && arg->i == -1 )
-		|| (selmon->tagset[selmon->seltags] & 0x100 && arg->i == 1))
+		|| (selmon->tagset[selmon->seltags] & 0x1000 && arg->i == 1))
 		return;
 	if (arg->i == 1)
 		selmon->tagset[selmon->seltags] <<= 1;
